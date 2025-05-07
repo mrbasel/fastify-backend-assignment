@@ -1,0 +1,25 @@
+{
+	"name": "the-lending-hub-assignment",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"check": "npx @biomejs/biome check --write ."
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"dependencies": {
+		"@sinclair/typebox": "^0.34.33",
+		"dotenv": "^16.5.0",
+		"drizzle-orm": "^0.43.1",
+		"fastify": "^5.3.2",
+		"mysql2": "^3.14.1"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "1.9.4",
+		"@types/node": "^22.15.14",
+		"drizzle-kit": "^0.31.1"
+	}
+}
