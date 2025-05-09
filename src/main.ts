@@ -1,17 +1,47 @@
-import Fastify, { type FastifyInstance } from "fastify";
+import FastifyJwt from "@fastify/jwt";
+import type { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
+import { Type } from "@sinclair/typebox";
+import Fastify from "fastify";
 
 import * as AuthController from "./controllers/AuthController";
 import * as ProfileController from "./controllers/ProfileController";
 
-const server: FastifyInstance = Fastify({});
+const server = Fastify().withTypeProvider<TypeBoxTypeProvider>();
+const port = 3000;
 
-server.post("/register", AuthController.register);
-server.post("/login", AuthController.login);
+server.register(FastifyJwt, {
+	secret: process.env.JWT_SECRET as string,
+});
+
+server.post(
+	"/register",
+	{
+		schema: {
+			body: AuthController.RegisterSchema,
+		},
+	},
+	AuthController.register,
+);
+
+server.post(
+	"/login",
+	{
+		schema: {
+			body: Type.Object({
+				email: Type.String({ format: "email", maxLength: 255 }),
+				password: Type.String({ minLength: 8, maxLength: 255 }),
+			}),
+		},
+	},
+	AuthController.login,
+);
+
 server.get("/profile", ProfileController.getProfile);
 
 export const start = async () => {
 	try {
-		await server.listen({ port: 3000 });
+		await server.listen({ port });
+		console.log(`Server listening on port ${port}`);
 	} catch (err) {
 		server.log.error(err);
 		process.exit(1);

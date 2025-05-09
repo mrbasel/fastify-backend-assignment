@@ -1,9 +1,65 @@
+import { type Static, Type } from "@sinclair/typebox";
+import bcrypt from "bcrypt";
+import { eq } from "drizzle-orm";
 import type { FastifyReply, FastifyRequest } from "fastify";
+import { db } from "../db";
+import { profilesTable, usersTable } from "../schema";
 
-export function register(req: FastifyRequest, res: FastifyReply) {
-	return { msg: "register" };
+export const RegisterSchema = Type.Object(
+	{
+		email: Type.String({ format: "email", maxLength: 255 }),
+		password: Type.String({ minLength: 8, maxLength: 255 }),
+		name: Type.String({ maxLength: 255 }),
+		description: Type.Optional(Type.String({ maxLength: 500 })),
+	},
+	{ additionalProperties: false },
+);
+
+export type RegisterBody = Static<typeof RegisterSchema>;
+
+export async function register(
+	req: FastifyRequest<{ Body: RegisterBody }>,
+	res: FastifyReply,
+) {
+	const hashedPass = await bcrypt.hash(req.body.password, 10);
+	req.body.password = hashedPass;
+	const result = await db.insert(usersTable).values(req.body).$returningId();
+	await db.insert(profilesTable).values({
+		userId: result[0].id,
+		name: req.body.name,
+		description: req.body.description,
+	});
+
+	return { message: "registered sucessfully" };
 }
 
-export function login(req: FastifyRequest, res: FastifyReply) {
-	return { msg: "login" };
+export const LoginSchema = Type.Object(
+	{
+		email: Type.String({ format: "email", maxLength: 255 }),
+		password: Type.String({ minLength: 8, maxLength: 255 }),
+	},
+	{ additionalProperties: false },
+);
+
+export type LoginBody = Static<typeof LoginSchema>;
+
+export async function login(
+	req: FastifyRequest<{ Body: LoginBody }>,
+	res: FastifyReply,
+) {
+	const user = await db
+		.select()
+		.from(usersTable)
+		.where(eq(usersTable.email, req.body.email));
+	console.log(user, req.body);
+
+	if (!user?.[0]) return res.code(401).send();
+	const isMatchingPass = await bcrypt.compare(
+		req.body.password,
+		user[0].password,
+	);
+	if (!isMatchingPass) return res.code(401).send();
+
+	const token = await res.jwtSign({ id: user[0].id });
+	return { token };
 }
