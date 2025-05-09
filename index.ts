@@ -8,7 +8,7 @@ export const start = async () => {
 		await server.listen({ port });
 		console.log(`Server listening on port ${port}`);
 	} catch (err) {
-		server.log.error(err);
+		console.log(err);
 		process.exit(1);
 	}
 };
