@@ -1,49 +1,35 @@
-import FastifyJwt from "@fastify/jwt";
 import type { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
-import { Type } from "@sinclair/typebox";
 import Fastify from "fastify";
+import FastifyJwt from "@fastify/jwt";
 
-import * as AuthController from "./controllers/AuthController";
-import * as ProfileController from "./controllers/ProfileController";
+import * as AuthController from "./controllers/AuthController.js";
+import * as ProfileController from "./controllers/ProfileController.js";
+import { verifyJwt } from "./utils.js";
 
-const server = Fastify().withTypeProvider<TypeBoxTypeProvider>();
-const port = 3000;
+export const server = Fastify().withTypeProvider<TypeBoxTypeProvider>();
 
 server.register(FastifyJwt, {
-	secret: process.env.JWT_SECRET as string,
+  secret: process.env.JWT_SECRET as string,
 });
 
 server.post(
-	"/register",
-	{
-		schema: {
-			body: AuthController.RegisterSchema,
-		},
-	},
-	AuthController.register,
+  "/register",
+  {
+    schema: {
+      body: AuthController.RegisterSchema,
+    },
+  },
+  AuthController.register,
 );
 
 server.post(
-	"/login",
-	{
-		schema: {
-			body: Type.Object({
-				email: Type.String({ format: "email", maxLength: 255 }),
-				password: Type.String({ minLength: 8, maxLength: 255 }),
-			}),
-		},
-	},
-	AuthController.login,
+  "/login",
+  {
+    schema: {
+      body: AuthController.LoginSchema,
+    },
+  },
+  AuthController.login,
 );
 
-server.get("/profile", ProfileController.getProfile);
-
-export const start = async () => {
-	try {
-		await server.listen({ port });
-		console.log(`Server listening on port ${port}`);
-	} catch (err) {
-		server.log.error(err);
-		process.exit(1);
-	}
-};
+server.get("/profile", { preHandler: verifyJwt }, ProfileController.getProfile);
