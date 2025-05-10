@@ -1,5 +1,5 @@
 
-# Setup
+## Setup
 
 Requirements: Node v20+
 
