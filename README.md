@@ -1,7 +1,7 @@
 
 # Setup
 
-Requirements: Bun v1.2+
+Requirements: Node v20+
 
 Install dependencies:
 ```
@@ -13,6 +13,11 @@ Create a `.env` file:
 ```
 DATABASE_URL=<database url here>
 JWT_SECRET=secret
+```
+
+Run migrations:
+```
+npx drizzle-kit migrate
 ```
 
 Run app:
