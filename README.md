@@ -22,7 +22,7 @@ npx drizzle-kit migrate
 
 Run app:
 ```
-bun index.ts
+npm run dev
 ```
 
 ## Routes
